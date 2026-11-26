@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { adminApi } from '../../../../lib/api';
-import { PageLoader } from '../../../../components/ui/Loading';
+import { adminApi } from '../../../lib/api';
+import { PageLoader } from '../../../components/ui/Loading';
 import { Users, Building2, Package, BookOpen, Clock } from 'lucide-react';
 
 interface DashboardStats {

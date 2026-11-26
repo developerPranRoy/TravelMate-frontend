@@ -44,6 +44,19 @@ export const destinationsApi = {
 };
 
 // --- Packages ---
+export interface CreatePackagePayload {
+  title: string;
+  destinationId: string;
+  description: string;
+  price: number;
+  durationDays: number;
+  availableSeats: number;
+  startDate: string;
+  endDate: string;
+  imageUrl?: string;
+  status?: 'DRAFT' | 'ACTIVE' | 'INACTIVE';
+}
+
 export const packagesApi = {
   list: (params?: {
     page?: number; limit?: number; search?: string; destinationId?: string;
@@ -51,9 +64,9 @@ export const packagesApi = {
   }) => api.get<PaginatedResponse<TourPackage>>('/packages', { params }).then((r) => r.data),
   getById: (id: string) =>
     api.get<ApiResponse<TourPackage>>(`/packages/${id}`).then((r) => r.data),
-  create: (data: Partial<TourPackage> & { price: number }) =>
+  create: (data: CreatePackagePayload) =>
     api.post<ApiResponse<TourPackage>>('/packages', data).then((r) => r.data),
-  update: (id: string, data: Partial<TourPackage>) =>
+  update: (id: string, data: Partial<CreatePackagePayload>) =>
     api.patch<ApiResponse<TourPackage>>(`/packages/${id}`, data).then((r) => r.data),
   delete: (id: string) => api.delete(`/packages/${id}`).then((r) => r.data),
   getMyPackages: (params?: { page?: number; limit?: number }) =>
