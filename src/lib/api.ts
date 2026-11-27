@@ -12,9 +12,38 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
+// The API sets an httpOnly cookie, but the frontend and API are on different
+// origins. Browsers may refuse to store or send that cookie, so we also keep the
+// token returned by login/register and send it as a Bearer header.
+const TOKEN_KEY = 'travelmate_token';
+
+export function getStoredToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  return window.localStorage.getItem(TOKEN_KEY);
+}
+
+export function setStoredToken(token: string) {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem(TOKEN_KEY, token);
+}
+
+export function clearStoredToken() {
+  if (typeof window === 'undefined') return;
+  window.localStorage.removeItem(TOKEN_KEY);
+}
+
+api.interceptors.request.use((config) => {
+  const token = getStoredToken();
+  if (token) {
+    config.headers.set('Authorization', `Bearer ${token}`);
+  }
+  return config;
+});
+
 api.interceptors.response.use(
   (res) => res,
   (err) => {
+    if (err.response?.status === 401) clearStoredToken();
     const message = err.response?.data?.message || err.message || 'Something went wrong';
     return Promise.reject(new Error(message));
   }
@@ -27,7 +56,7 @@ export const authApi = {
   login: (data: { email: string; password: string }) =>
     api.post<ApiResponse<AuthResponse>>('/auth/login', data).then((r) => r.data),
   logout: () => api.post('/auth/logout').then((r) => r.data),
-  getMe: () => api.get<ApiResponse<User>>('/auth/me').then((r) => r.data),
+  getMe: () => api.get<ApiResponse<{ user: User }>>('/auth/me').then((r) => r.data),
 };
 
 // --- Destinations ---

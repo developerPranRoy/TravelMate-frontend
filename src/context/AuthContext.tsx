@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { User } from '../types';
-import { authApi } from '../lib/api';
+import { authApi, setStoredToken, clearStoredToken } from '../lib/api';
 
 interface AuthContextType {
   user: User | null;
@@ -22,7 +22,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const refreshUser = useCallback(async () => {
     try {
       const res = await authApi.getMe();
-      setUser(res.data);
+      setUser(res.data.user);
     } catch {
       setUser(null);
     }
@@ -34,17 +34,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     const res = await authApi.login({ email, password });
+    setStoredToken(res.data.token);
     setUser(res.data.user);
   };
 
   const register = async (data: { name: string; email: string; password: string; role?: string; agencyName?: string }) => {
     const res = await authApi.register(data);
+    setStoredToken(res.data.token);
     setUser(res.data.user);
   };
 
   const logout = async () => {
-    await authApi.logout();
-    setUser(null);
+    try {
+      await authApi.logout();
+    } finally {
+      clearStoredToken();
+      setUser(null);
+    }
   };
 
   return (
