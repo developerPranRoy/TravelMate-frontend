@@ -19,6 +19,7 @@ export default function AgencyPackagesPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [deactivating, setDeactivating] = useState<string | null>(null);
+  const [activating, setActivating] = useState<string | null>(null);
   const router = useRouter();
 
   const fetch = useCallback(async (p = page) => {
@@ -47,6 +48,19 @@ export default function AgencyPackagesPage() {
       toast.error(err instanceof Error ? err.message : 'Failed');
     } finally {
       setDeactivating(null);
+    }
+  };
+
+  const handleActivate = async (id: string) => {
+    setActivating(id);
+    try {
+      await packagesApi.update(id, { status: 'ACTIVE' });
+      toast.success('Package activated');
+      fetch(page);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed');
+    } finally {
+      setActivating(null);
     }
   };
 
@@ -83,9 +97,12 @@ export default function AgencyPackagesPage() {
                 </div>
                 <div className="flex gap-2">
                   <Button variant="secondary" size="sm" onClick={() => router.push(`/packages/${pkg.id}`)}>View</Button>
-                  {pkg.status !== 'INACTIVE' && (
+                  {pkg.status === 'ACTIVE' ? (
                     <Button variant="danger" size="sm" loading={deactivating === pkg.id}
                       onClick={() => handleDeactivate(pkg.id)}>Deactivate</Button>
+                  ) : (
+                    <Button variant="secondary" size="sm" loading={activating === pkg.id}
+                      onClick={() => handleActivate(pkg.id)}>Activate</Button>
                   )}
                 </div>
               </div>
